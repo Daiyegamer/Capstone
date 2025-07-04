@@ -9,7 +9,7 @@
 
     </div>
     <div class="d-flex justify-content-center mt-3">
-        <div id="map" style="height: 200px; width: 50%;"></div>
+        <div id="map" style="height: 200px; width: 100%;"></div>
     </div>
 
     <ul id="mosqueList" class="list-group mt-4 container"></ul>
@@ -37,6 +37,15 @@
                     };
                     map.setCenter(userLocation);
 
+                    new google.maps.Marker({
+                        position: userLocation,
+                        map: map,
+                        title: "Your Location",
+                        icon: {
+                            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                        }
+                    });
+
                     const request = {
                         location: userLocation,
                         rankBy: google.maps.places.RankBy.DISTANCE,
@@ -57,55 +66,92 @@
             }
         });
     }
-function listMosquesWithDirections(mosques, userLocation) {
-    const list = document.getElementById("mosqueList");
-    list.innerHTML = "";
+    function listMosquesWithDirections(mosques, userLocation) {
+        const list = document.getElementById("mosqueList");
+        list.innerHTML = "";
 
-    const directionsService = new google.maps.DirectionsService();
-    const resultsWithTime = [];
-    let completed = 0;
+        const directionsService = new google.maps.DirectionsService();
+        const placeService = new google.maps.places.PlacesService(map);
+        const resultsWithDetails = [];
+        let completed = 0;
 
-    mosques.forEach((mosque, index) => {
-        const request = {
-            origin: userLocation,
-            destination: { placeId: mosque.place_id },
-            travelMode: 'DRIVING'
-        };
+        mosques.forEach((mosque, index) => {
+            const detailsRequest = {
+                placeId: mosque.place_id,
+                fields: ['name', 'website', 'formatted_address'] // fetch readable info
+            };
 
-        directionsService.route(request, (result, status) => {
-            if (status === 'OK' && result.routes[0]) {
-                const leg = result.routes[0].legs[0];
-                resultsWithTime.push({
-                    name: mosque.name,
-                    website: mosque.website || '',
-                    placeId: mosque.place_id,
-                    durationText: leg.duration.text,
-                    durationValue: leg.duration.value, // used for sorting
-                    distance: leg.distance.text
-                });
-            }
+            placeService.getDetails(detailsRequest, (detailsResult, detailsStatus) => {
+                const name = detailsResult?.name || mosque.name;
+                const website = detailsResult?.website || '';
+                const address = detailsResult?.formatted_address || '';
 
-            completed++;
-            if (completed === mosques.length) {
-                // All requests are done, sort and display
-                resultsWithTime.sort((a, b) => a.durationValue - b.durationValue);
-                const topThree = resultsWithTime.slice(0, 3);
-                topThree.forEach(m => {
-                    const li = document.createElement("li");
-                    li.className = "list-group-item";
-                    li.innerHTML = `
-                        <strong>${m.name}</strong><br/>
-                        Distance: ${m.distance}<br/>
-                        ETA: ${m.durationText}<br/>
-                        <a href="https://www.google.com/maps/dir/?api=1&destination_place_id=${m.placeId}&travelmode=driving" target="_blank">Directions</a>
-                        ${m.website ? `<br/><a href="${m.website}" target="_blank">Website</a>` : ""}
-                    `;
-                    list.appendChild(li);
-                });
-            }
-        });
-    });
+                const directionsRequest = {
+                    origin: userLocation,
+                    destination: { placeId: mosque.place_id },
+                    travelMode: 'DRIVING'
+                };
+
+                directionsService.route(directionsRequest, (routeResult, routeStatus) => {
+                    if (routeStatus === 'OK' && routeResult.routes[0]) {
+                        const leg = routeResult.routes[0].legs[0];
+                        resultsWithDetails.push({
+                            name,
+                            website,
+                            address,
+                            durationText: leg.duration.text,
+                            durationValue: leg.duration.value,
+                            distance: leg.distance.text,
+                            placeId: mosque.place_id,
+                            location: leg.end_location
+                        });
+
+                        new google.maps.Marker({
+                            map: map,
+                            position: leg.end_location,
+                           icon: {
+  url: "https://img.icons8.com/emoji/48/mosque.png", // red mosque emoji-style icon
+  scaledSize: new google.maps.Size(32, 32)
 }
+,
 
-   
+
+                            label: {
+                                text: name,
+                                fontWeight: 'bold',
+                                fontSize: '12px',
+                                color: 'black'
+                            }
+                        });
+                    }
+
+                    completed++;
+                    if (completed === mosques.length) {
+                        resultsWithDetails.sort((a, b) => a.durationValue - b.durationValue);
+                        const topThree = resultsWithDetails.slice(0, 3);
+
+                        topThree.forEach(m => {
+                            const li = document.createElement("li");
+                            li.className = "list-group-item";
+
+                            const directionsLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(m.address)}&travelmode=driving`;
+
+                            li.innerHTML = `
+                            <strong>${m.name}</strong><br/>
+                            Distance: ${m.distance}<br/>
+                            ETA: ${m.durationText}<br/>
+                            <a href="${directionsLink}" target="_blank">Directions</a>
+                            ${m.website ? `<br/><a href="${m.website}" target="_blank">Website</a>` : ""}
+                        `;
+
+                            list.appendChild(li);
+                        });
+                    }
+                });
+            });
+        });
+    }
+
+
+
 </script>

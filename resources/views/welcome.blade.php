@@ -11,6 +11,8 @@
     <div class="d-flex justify-content-center mt-3">
         <div id="map" style="height: 200px; width: 100%;"></div>
     </div>
+    <div id="favMessage" class="alert alert-success d-none text-center mx-auto" style="max-width: 400px;"></div>
+
 
     <ul id="mosqueList" class="list-group mt-4 container"></ul>
 
@@ -19,6 +21,16 @@
     let map;
     let service;
     let infowindow;
+    let savedFavorites = [];
+
+    function fetchSavedFavorites() {
+        return fetch('/favorites')
+            .then(res => res.json())
+            .then(data => {
+                savedFavorites = data.map(fav => fav.place_id); // store only place_ids
+            });
+    }
+
 
     function initMap() {
         const defaultLocation = { lat: 43.6532, lng: -79.3832 };
@@ -55,7 +67,9 @@
                     service.nearbySearch(request, (results, status) => {
                         if (status === google.maps.places.PlacesServiceStatus.OK) {
                             const topMosques = results.slice(0, 3);
-                            listMosquesWithDirections(topMosques, userLocation);
+                            fetchSavedFavorites().then(() => {
+                                listMosquesWithDirections(topMosques, userLocation);
+                            });
                         }
                     });
                 }, () => {
@@ -109,11 +123,11 @@
                         new google.maps.Marker({
                             map: map,
                             position: leg.end_location,
-                           icon: {
-  url: "https://img.icons8.com/emoji/48/mosque.png", // red mosque emoji-style icon
-  scaledSize: new google.maps.Size(32, 32)
-}
-,
+                            icon: {
+                                url: "https://img.icons8.com/emoji/48/mosque.png", // red mosque emoji-style icon
+                                scaledSize: new google.maps.Size(32, 32)
+                            }
+                            ,
 
 
                             label: {
@@ -137,13 +151,22 @@
                             const directionsLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(m.address)}&travelmode=driving`;
 
                             li.innerHTML = `
-                            <strong>${m.name}</strong><br/>
-                            Distance: ${m.distance}<br/>
-                            ETA: ${m.durationText}<br/>
-                            <a href="${directionsLink}" target="_blank">Directions</a>
-                            ${m.website ? `<br/><a href="${m.website}" target="_blank">Website</a>` : ""}
-                        `;
-
+                                            <strong>${m.name}</strong><br/>
+                                            Distance: ${m.distance}<br/>
+                                            ETA: ${m.durationText}<br/>
+                                            <a href="${directionsLink}" target="_blank">Directions</a>
+                                            ${m.website ? `<br/><a href="${m.website}" target="_blank">Website</a>` : ""}
+                                            <br/>
+                                            ${!savedFavorites.includes(m.placeId) ? `
+    <button class="btn btn-outline-danger btn-sm mt-2 save-fav-btn" 
+        data-name="${m.name}" 
+        data-place-id="${m.placeId}">
+        ❤️ Save to Favorites
+    </button>
+` : `
+    <span class="badge bg-success mt-2">✅ Saved as Favorite</span>
+`}
+                                        `;
                             list.appendChild(li);
                         });
                     }
@@ -152,6 +175,60 @@
         });
     }
 
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('save-fav-btn')) {
+            const name = e.target.getAttribute('data-name');
+            const placeId = e.target.getAttribute('data-place-id');
+
+            fetch('/favorites', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: JSON.stringify({ name, place_id: placeId }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const msgDiv = document.getElementById('favMessage');
+                    msgDiv.textContent = data.message;
+                    msgDiv.classList.remove('d-none');
+                    msgDiv.classList.add('show');
+
+                    // Automatically hide after 5 seconds
+                    setTimeout(() => {
+                        msgDiv.classList.add('d-none');
+                    }, 5000);
+                })
+                .catch(error => {
+                    const msgDiv = document.getElementById('favMessage');
+                    msgDiv.textContent = 'Error saving favorite.';
+                    msgDiv.classList.remove('d-none');
+                    msgDiv.classList.remove('alert-success');
+                    msgDiv.classList.add('alert-danger');
+
+                    setTimeout(() => {
+                        msgDiv.classList.add('d-none');
+                        msgDiv.classList.remove('alert-danger');
+                        msgDiv.classList.add('alert-success');
+                    }, 5000);
+                });
+        }
+    });
 
 
+</script>
+
+<script>
+    function toggleFavoritesDropdown() {
+        const dropdown = document.getElementById('favoritesDropdown');
+        const isVisible = !dropdown.classList.contains('d-none');
+
+        if (isVisible) {
+            dropdown.classList.add('d-none');
+        } else {
+            dropdown.classList.remove('d-none');
+            loadFavorites(); // ← this is the missing link!
+        }
+    }
 </script>

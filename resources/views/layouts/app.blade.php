@@ -37,11 +37,73 @@
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
+
 
     <script async
         src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap">
+        </script>
+    <script>
+        function toggleFavoritesDropdown() {
+            const panel = document.getElementById('favoritesDropdown');
+            panel.classList.toggle('d-none');
+
+            if (!panel.classList.contains('d-none')) {
+                 loadFavorites();
+              
+            }
+        }
+
+        function removeFavorite(placeId) {
+            fetch(`/favorites/${placeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            }).then(() => {
+                toggleFavoritesDropdown();
+                toggleFavoritesDropdown(); // reopen to refresh
+            });
+        }
     </script>
+<script>
+    function loadFavorites() {
+        fetch('/favorites')
+            .then(response => response.json())
+            .then(favorites => {
+                const list = document.getElementById('favoritesList');
+                list.innerHTML = '';
+
+                const placeService = new google.maps.places.PlacesService(document.createElement('div'));
+
+                favorites.forEach(fav => {
+                    const request = {
+                        placeId: fav.place_id,
+                        fields: ['name', 'website', 'formatted_address']
+                    };
+
+                    placeService.getDetails(request, (details, status) => {
+                        if (status === google.maps.places.PlacesServiceStatus.OK) {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item';
+
+                            const directionsLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(details.formatted_address)}&travelmode=driving`;
+
+                            li.innerHTML = `
+                                <strong>${details.name}</strong><br/>
+                                <a href="${directionsLink}" target="_blank">Directions</a><br/>
+                                ${details.website ? `<a href="${details.website}" target="_blank">Website</a><br/>` : ''}
+                                <button class="btn btn-sm btn-danger mt-1" onclick="removeFavorite('${fav.place_id}')">Remove</button>
+                            `;
+
+                            list.appendChild(li);
+                        }
+                    });
+                });
+            });
+    }
+</script>
+
+
 
 
 </body>

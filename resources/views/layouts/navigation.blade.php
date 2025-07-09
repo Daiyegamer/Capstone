@@ -14,14 +14,19 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
+
+                            <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); toggleFavoritesDropdown();">View Favorites</a></li>
+
+
+
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="dropdown-item text-danger">Log Out</button>
-
                                 </form>
                             </li>
                         </ul>
+
                     </li>
                 @else
                     <li class="nav-item me-2">
@@ -37,3 +42,11 @@
         </div>
     </div>
 </nav>
+<!-- Favorites Dropdown (Overlay) -->
+<div id="favoritesDropdown" class="card shadow-sm position-absolute end-0 me-3 mt-2 d-none" style="width: 300px; z-index: 999;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Your Favorites</strong>
+        <button class="btn-close btn-sm" onclick="toggleFavoritesDropdown()"></button>
+    </div>
+    <ul id="favoritesList" class="list-group list-group-flush"></ul>
+</div>

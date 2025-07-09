@@ -191,6 +191,9 @@
                 .then(response => response.json())
                 .then(data => {
                     const msgDiv = document.getElementById('favMessage');
+                    e.target.outerHTML = `<span class="badge bg-success mt-2">✅ Saved as Favorite</span>`;
+
+                    // Show success message
                     msgDiv.textContent = data.message;
                     msgDiv.classList.remove('d-none');
                     msgDiv.classList.add('show');

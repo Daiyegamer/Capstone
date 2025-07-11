@@ -88,11 +88,15 @@
         const placeService = new google.maps.places.PlacesService(map);
         const resultsWithDetails = [];
         let completed = 0;
-
+if (window.mosqueMarkers) {
+    window.mosqueMarkers.forEach(m => m.setMap(null));
+}
+window.mosqueMarkers = [];
         mosques.forEach((mosque, index) => {
             const detailsRequest = {
                 placeId: mosque.place_id,
-                fields: ['name', 'website', 'formatted_address'] // fetch readable info
+                fields: ['name', 'website', 'formatted_address'] 
+                // fetch readable info
             };
 
             placeService.getDetails(detailsRequest, (detailsResult, detailsStatus) => {
@@ -120,23 +124,21 @@
                             location: leg.end_location
                         });
 
-                        new google.maps.Marker({
-                            map: map,
-                            position: leg.end_location,
-                            icon: {
-                                url: "https://img.icons8.com/emoji/48/mosque.png", // red mosque emoji-style icon
-                                scaledSize: new google.maps.Size(32, 32)
-                            }
-                            ,
-
-
-                            label: {
-                                text: name,
-                                fontWeight: 'bold',
-                                fontSize: '12px',
-                                color: 'black'
-                            }
-                        });
+                   const marker = new google.maps.Marker({
+    map: map,
+    position: leg.end_location,
+    icon: {
+        url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
+        scaledSize: new google.maps.Size(40, 40)
+    },
+    label: {
+        text: name,
+        fontWeight: 'bold',
+        fontSize: '12px',
+        color: 'black'
+    }
+});
+window.mosqueMarkers.push(marker);
                     }
 
                     completed++;

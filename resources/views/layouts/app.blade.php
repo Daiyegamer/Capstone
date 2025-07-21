@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" >
 
 <head>
     <meta charset="utf-8">
@@ -13,7 +13,7 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
     <!-- Scripts -->
-    <!-- @vite(['resources/css/app.css', 'resources/js/app.js']) -->
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 </head>
@@ -33,6 +33,7 @@
 
         <!-- Page Content -->
         <main>
+            <button class="btn btn-sm btn-secondary" onclick="toggleDarkMode()">Toggle Dark Mode</button>
             @yield('content')
         </main>
     </div>
@@ -102,6 +103,22 @@
             });
     }
 </script>
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-bs-theme', prefersDark ? 'dark' : 'light');
+    });
+</script>
+
+<script>
+function toggleDarkMode() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-bs-theme');
+    html.setAttribute('data-bs-theme', currentTheme === 'dark' ? 'light' : 'dark');
+}
+</script>
+
+
 
 
 

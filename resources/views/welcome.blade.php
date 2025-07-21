@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+<script>
+    const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+</script>
+
+
+
+
     <div class="container text-center mt-5">
         <h1 class="display-4">Welcome to Mosque Finder</h1>
         <p class="lead">Quickly find nearby mosques with directions, distance, and more.</p>
@@ -8,6 +15,12 @@
         <button id="findMosquesBtn" class="btn btn-success mt-3">Find Mosques Near Me</button>
 
     </div>
+    <div id="loadingSpinner" class="text-center mt-3 d-none">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
     <div class="d-flex justify-content-center mt-3">
         <div id="map" style="height: 200px; width: 100%;"></div>
     </div>
@@ -23,13 +36,23 @@
     let infowindow;
     let savedFavorites = [];
 
-    function fetchSavedFavorites() {
-        return fetch('/favorites')
-            .then(res => res.json())
-            .then(data => {
-                savedFavorites = data.map(fav => fav.place_id); // store only place_ids
-            });
+ function fetchSavedFavorites() {
+    if (!isLoggedIn)
+ {
+        savedFavorites = []; // skip fetch and continue
+        return Promise.resolve();
     }
+
+    return fetch('/favorites')
+        .then(res => res.json())
+        .then(data => {
+            savedFavorites = data.map(fav => fav.place_id);
+        })
+        .catch(() => {
+            savedFavorites = []; // fallback in case of error
+        });
+}
+
 
 
     function initMap() {
@@ -41,6 +64,7 @@
         });
 
         document.getElementById("findMosquesBtn").addEventListener("click", () => {
+      document.getElementById("loadingSpinner").classList.remove("d-none");
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
                     const userLocation = {
@@ -68,10 +92,14 @@
                         if (status === google.maps.places.PlacesServiceStatus.OK) {
                             const topMosques = results.slice(0, 3);
                             fetchSavedFavorites().then(() => {
-                                listMosquesWithDirections(topMosques, userLocation);
-                            });
-                        }
+                                listMosquesWithDirections(topMosques, userLocation).then(() => {
+                            document.getElementById("loadingSpinner").classList.add("d-none"); 
+                        });
                     });
+                } else {
+                    document.getElementById("loadingSpinner").classList.add("d-none");
+                }
+            });
                 }, () => {
                     alert("Geolocation failed or denied.");
                 });
@@ -81,6 +109,7 @@
         });
     }
     function listMosquesWithDirections(mosques, userLocation) {
+    return new Promise((resolve) => {
         const list = document.getElementById("mosqueList");
         list.innerHTML = "";
 
@@ -159,19 +188,25 @@ window.mosqueMarkers.push(marker);
                                             <a href="${directionsLink}" target="_blank">Directions</a>
                                             ${m.website ? `<br/><a href="${m.website}" target="_blank">Website</a>` : ""}
                                             <br/>
-                                            ${!savedFavorites.includes(m.placeId) ? `
+${(isLoggedIn && !savedFavorites.includes(m.placeId)) ? `
     <button class="btn btn-outline-danger btn-sm mt-2 save-fav-btn" 
         data-name="${m.name}" 
         data-place-id="${m.placeId}">
         ❤️ Save to Favorites
     </button>
-` : `
+` : (isLoggedIn ? `
     <span class="badge bg-success mt-2">✅ Saved as Favorite</span>
-`}
+` : '')}
+
+
+
                                         `;
                             list.appendChild(li);
+                            
                         });
+                        resolve();
                     }
+                   });
                 });
             });
         });

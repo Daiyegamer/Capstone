@@ -1,4 +1,5 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+
     <div class="container position-relative">
         <a class="navbar-brand position-absolute start-50 translate-middle-x" href="{{ url('/') }}">Mosque Finder</a>
 

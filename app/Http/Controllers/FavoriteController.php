@@ -28,27 +28,36 @@ class FavoriteController extends Controller
         return response()->json($favorites);
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string',
-            'place_id' => 'required|string',
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string',
+        'place_id' => 'required|string',
+    ]);
 
-        $user = Auth::user();
+    $user = Auth::user();
 
-        for ($i = 1; $i <= 3; $i++) {
-            if (!$user->{"favorite{$i}_place_id"}) {
-                $user->{"favorite{$i}_name"} = $request->name;
-                $user->{"favorite{$i}_place_id"} = $request->place_id;
-                $user->save();
-
-                return response()->json(['message' => 'Favorite saved']);
-            }
+    // Check if the mosque is already saved
+    for ($i = 1; $i <= 3; $i++) {
+        if ($user->{"favorite{$i}_place_id"} === $request->place_id) {
+            return response()->json(['message' => 'Already saved'], 200);
         }
-
-        return response()->json(['message' => 'Max 3 favorites reached'], 400);
     }
+
+    // Save in first available empty slot
+    for ($i = 1; $i <= 3; $i++) {
+        if (!$user->{"favorite{$i}_place_id"}) {
+            $user->{"favorite{$i}_name"} = $request->name;
+            $user->{"favorite{$i}_place_id"} = $request->place_id;
+            $user->save();
+
+            return response()->json(['message' => 'Favorite saved']);
+        }
+    }
+
+    return response()->json(['message' => 'Max 3 favorites reached'], 400);
+}
+
 
     public function destroy($place_id)
     {

@@ -124,15 +124,17 @@ window.mosqueMarkers = [];
         mosques.forEach((mosque, index) => {
             const detailsRequest = {
                 placeId: mosque.place_id,
-                fields: ['name', 'website', 'formatted_address'] 
-                // fetch readable info
+               fields: ['name', 'website', 'formatted_address', 'rating', 'formatted_phone_number']
+                
+                
             };
 
             placeService.getDetails(detailsRequest, (detailsResult, detailsStatus) => {
                 const name = detailsResult?.name || mosque.name;
                 const website = detailsResult?.website || '';
                 const address = detailsResult?.formatted_address || '';
-
+                const rating  = detailsResult?.rating || null;
+                const phone = detailsResult?.formatted_phone_number || '';
                 const directionsRequest = {
                     origin: userLocation,
                     destination: { placeId: mosque.place_id },
@@ -144,8 +146,10 @@ window.mosqueMarkers = [];
                         const leg = routeResult.routes[0].legs[0];
                         resultsWithDetails.push({
                             name,
+                            phone,
                             website,
                             address,
+                            rating,
                             durationText: leg.duration.text,
                             durationValue: leg.duration.value,
                             distance: leg.distance.text,
@@ -182,12 +186,12 @@ window.mosqueMarkers.push(marker);
                             const directionsLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(m.address)}&travelmode=driving`;
 
                             li.innerHTML = `
-                                            <strong>${m.name}</strong><br/>
+                                            <strong>${m.name}  </strong>📞 <a href="tel:${phone}">${phone}</a><br/>
                                             Distance: ${m.distance}<br/>
                                             ETA: ${m.durationText}<br/>
                                             <a href="${directionsLink}" target="_blank">Directions</a>
-                                            ${m.website ? `<br/><a href="${m.website}" target="_blank">Website</a>` : ""}
-                                            <br/>
+                                            ${m.website ? `<br/><a href="${m.website}" target="_blank">Website</a>` : ""}<br/>
+                                            ${m.rating ? `⭐ ${m.rating.toFixed(1)}/ 5` : ""}<br/>
 ${(isLoggedIn && !savedFavorites.includes(m.placeId)) ? `
     <button class="btn btn-outline-danger btn-sm mt-2 save-fav-btn" 
         data-name="${m.name}" 

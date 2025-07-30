@@ -3,9 +3,7 @@
     <div class="container position-relative">
         <a class="navbar-brand position-absolute start-50 translate-middle-x" href="{{ url('/') }}">Mosque Finder</a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        
         <div class="ms-auto d-flex align-items-center">
             <ul class="navbar-nav ms-auto">
                 @auth

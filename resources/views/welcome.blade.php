@@ -24,6 +24,10 @@
 @endguest
     
 
+    <div class="input-group mt-3 w-75 mx-auto">
+        <input type="text" id="postalCodeInput" class="form-control" placeholder="Enter Postal Code">
+        <button id="searchByPostalBtn" class="btn btn-primary">Search</button>
+    </div>
 
   
 

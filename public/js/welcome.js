@@ -377,3 +377,60 @@ document.addEventListener('submit', function (e) {
         }, 1000);  
     }  
 });    
+
+document.getElementById('searchByPostalBtn').addEventListener('click', function () {
+    const postalCode = document.getElementById('postalCodeInput').value.trim();
+
+    // Clear any previous messages
+    showStatusMessage('', true);
+
+    if (!postalCode) {
+        return showStatusMessage("⚠️ Please enter a valid postal code.", false);
+    }
+
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: postalCode }, function (results, status) {
+        if (status === "OK" && results[0]) {
+            const location = results[0].geometry.location;
+            const userLocation = {
+                lat: location.lat(),
+                lng: location.lng()
+            };
+
+            map.setCenter(userLocation);
+
+            fetchSavedFavorites().then(() => {
+                const request = {
+                    location: userLocation,
+                    rankBy: google.maps.places.RankBy.DISTANCE,
+                    keyword: 'mosque masjid'
+                };
+
+                const localService = new google.maps.places.PlacesService(map);
+                localService.nearbySearch(request, (results, status) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                        const topMosques = results.slice(0, 3);
+                        listMosquesWithDirections(topMosques, userLocation);
+                    } else {
+                        showStatusMessage("😔 No mosques found near that postal code.", false);
+                    }
+                });
+            });
+        } else {
+            showStatusMessage("❌ Could not find location for that postal code.", false);
+        }
+    });
+});
+function showStatusMessage(message, hide = false) {
+    const msgDiv = document.getElementById('favMessage');
+    if (hide || !message) {
+        msgDiv.classList.add('d-none');
+        msgDiv.textContent = '';
+        return;
+    }
+
+    msgDiv.textContent = message;
+    msgDiv.classList.remove('d-none');
+    msgDiv.classList.remove('alert-success');
+    msgDiv.classList.add('alert-danger');
+}

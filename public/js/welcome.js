@@ -245,17 +245,17 @@ function listMosquesWithDirections(mosques, userLocation, fromCache = false, cac
                             const directionsLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(m.address)}&travelmode=driving`;
 
                             li.innerHTML = `
-                                <strong>${m.name}</strong> 📞 <a href="tel:${m.phone}">${m.phone}</a><br/>
+                                <div class="fw-bold bg-warning text-dark px-1 py-1 rounded d-inline-block">${m.name}</div>${m.rating ? `  ⭐ ${m.rating.toFixed(1)}/5<br/>` : ""}                             📞  <a href="tel:${m.phone}">${m.phone}</a><br/>
                                 Distance: ${m.distance}<br/>
                                 ETA: ${m.durationText}<br/>
-                                <a href="${directionsLink}" target="_blank">Directions</a><br/>
-                                ${m.website ? `<a href="${m.website}" target="_blank">Website</a><br/>` : ""}
-                                ${m.rating ? `⭐ ${m.rating.toFixed(1)}/5<br/>` : ""}
+                                <a href="${directionsLink}" target="_blank"> Directions</a><br/>
+                                ${m.website ? `<a href="${m.website}" target="_blank"> Website</a><br/>` : ""}
+                                
                                 ${isLoggedIn ? (
                                     savedFavorites.includes(m.place_id)
-                                        ? `<span class="badge bg-success mt-2">✅ Saved as Favorite</span>`
+                                        ? `<span class="badge bg-success mt-1">✅ Saved as Favorite</span>`
                                         : (savedFavorites.length >= 3
-                                            ? `<div class="text-muted mt-2">⚠️ Max 3 favorites reached</div>`
+                                            ? `<div class="text-muted mt-1">⚠️ Maximum 3 favorites reached</div>`
                                             : `<button class="btn btn-outline-danger btn-sm mt-2 save-fav-btn"
                                                     data-name="${m.name}"
                                                     data-place-id="${m.place_id}">

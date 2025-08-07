@@ -7,25 +7,28 @@
 
 
 
-    <div class="container text-center mt-5">
-        <h1 class="display-4">Welcome to Mosque Finder</h1>
+    <div class="container text-center mt-1">
+        <h1 class="display-10">Welcome to Mosque Finder</h1>
         <p class="lead">Quickly find nearby mosques with directions, distance, and more.</p>
     
 
 @guest
-<div class="p-4 rounded shadow-sm mt-4 border bg-body-secondary">
+<div class="p-1 rounded shadow-sm mt-1 border bg-body-secondary">
     <p class="lead text-center fw-semibold text-body-emphasis mb-0">
-       Register or log in to manage your favorite mosques and get directions faster --Tailored just for you!!
+       Log in to manage your favorite mosques and get directions faster -- Tailored just for you!
+    </p>
+    <p>
+       Don't have an account? Create a free one today!
     </p>
 </div>
 @endguest
-     
+    
 
 
   
 
         <!-- Find Mosques Button -->
-        <button id="findMosquesBtn" class="btn btn-success mt-3">Find Mosques Near Me</button>
+        <button id="findMosquesBtn" class="btn btn-success mt-3">Find Nearby Mosques 
 
     </div>
     <div id="loadingSpinner" class="text-center mt-3 d-none">
@@ -48,15 +51,16 @@
 @endif
 
  
-@php
-    $welcomeJs = public_path('js/welcome.js');
-    $welcomeVer = file_exists($welcomeJs) ? filemtime($welcomeJs) : '';
-@endphp
+<script src="{{ asset('js/welcome.js') }}?v={{ file_exists(public_path('js/welcome.js')) ? filemtime(public_path('js/welcome.js')) : '' }}"></script>
 
-<script src="{{ asset('js/welcome.js') }}?v={{ $welcomeVer }}"></script>
+
 
 
 
 
 
 @endsection
+
+  
+
+       

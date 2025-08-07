@@ -33,7 +33,9 @@
 
         <!-- Page Content -->
         <main>
-            <button class="btn btn-sm btn-secondary" onclick="toggleDarkMode()">Toggle Light/Dark Mode</button>
+               <div class="text-center my-1">
+        <button class="btn btn-sm btn-secondary" onclick="toggleDarkMode()">Toggle Light/Dark Mode</button>
+    </div>
             @yield('content')
         </main>
     </div>
@@ -148,7 +150,10 @@ function toggleDarkMode() {
  <script async 
         src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap">
         </script>
-        
+  <footer class="text-center py-3 mt-5 bg-light text-muted small">
+    © Adil Surve 2025. All rights reserved.
+</footer>
+      
 </body>
 
 </html>
